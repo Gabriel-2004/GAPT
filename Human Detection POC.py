@@ -64,8 +64,8 @@ def getFrame(sec):
 if __name__ == "__main__":
     model_path = 'faster_rcnn/frozen_inference_graph.pb'
     odapi = DetectorAPI(path_to_ckpt=model_path)
-    threshold = 0.6
-    cap = cv2.VideoCapture('Drone Project - Person in Video - 2.mp4')
+    threshold = 0.8
+    cap = cv2.VideoCapture('Drone Project - Person in Video - 1.mp4')
     
     sec = 0
     frameRate = 0.2
@@ -78,9 +78,11 @@ if __name__ == "__main__":
     while success:
         r, img = cap.read()
         
-        img = cv2.resize(img, (480, 848))
+        #img = cv2.resize(img, (480, 848))
         #img = cv2.resize(img, (1920, 1080))
-        img = ndimage.rotate(img, 90)
+        #img = ndimage.rotate(img, 0)
+        if(img is None):
+            break
         boxes, scores, classes, num = odapi.processFrame(img)
         
         final_score = np.squeeze(scores)    
