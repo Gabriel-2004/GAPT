@@ -65,7 +65,7 @@ if __name__ == "__main__":
     model_path = 'faster_rcnn/frozen_inference_graph.pb'
     odapi = DetectorAPI(path_to_ckpt=model_path)
     threshold = 0.8
-    cap = cv2.VideoCapture('Drone Project - Person in Video - 1.mp4')
+    cap = cv2.VideoCapture('Drone Project - No Person in Video - 2.mp4')
     
     sec = 0
     frameRate = 0.2

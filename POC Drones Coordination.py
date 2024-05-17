@@ -113,6 +113,7 @@ velocity = 10
 coverage = 20
 orientation = 0
 variant = 2
+optimal_altitude = 20
 
 flight_paths, picture_points = deterministic_path_planning(area, num_drones, max_flight_time, velocity, coverage, orientation, variant)
 
@@ -129,15 +130,14 @@ picture_points_z = [0] * len(picture_points)
 ax.scatter(picture_points_x, picture_points_y, picture_points_z, c='black', marker='x', label='Picture Points')
 
 colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k']
-altitudes = [10, 20, 30]
 drone_paths = []
 drones = []
 
 for i, path in enumerate(flight_paths):
     path = np.array(path)
     path_x, path_y = path[:, 0], path[:, 1]
-    path_z = [altitudes[i % len(altitudes)]] * len(path)
-    ax.plot(path_x, path_y, path_z, color=colors[i % len(colors)], label=f'Drone {i + 1} Path at {altitudes[i % len(altitudes)]}m')
+    path_z = optimal_altitude
+    ax.plot(path_x, path_y, path_z, color=colors[i % len(colors)], label=f'Drone {i + 1} Path at {optimal_altitude}m')
     drone_paths.append(path)
     drone, = ax.plot([], [], [], color=colors[i % len(colors)], marker='o', linestyle='')
     drones.append(drone)
@@ -152,7 +152,7 @@ def update(num, drone_paths, drones):
     for i, (drone, path) in enumerate(zip(drones, drone_paths)):
         index = num % len(path)
         drone.set_data(path[index, 0], path[index, 1])
-        drone.set_3d_properties(altitudes[i % len(altitudes)])
+        drone.set_3d_properties(optimal_altitude)
 
 ani = FuncAnimation(fig, update, frames=100, fargs=(drone_paths, drones), interval=100, repeat=True)
 
