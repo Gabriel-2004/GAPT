@@ -72,11 +72,8 @@ def split_cluster(cluster, max_flight_time, velocity):
 
     return sub_clusters
 
-def deterministic_path_planning(area, num_drones, max_flight_time, velocity, coverage, orientation, variant):
-    if variant == 1:
-        partitions = [(0, 0)]
-    else:
-        partitions = partition_area(area, threshold=coverage)
+def deterministic_path_planning(area, num_drones, max_flight_time, velocity, coverage, orientation):
+    partitions = partition_area(area, threshold=coverage)
 
     picture_points = generate_picture_points(partitions, coverage, orientation)
 
@@ -107,15 +104,14 @@ def update_paths_based_on_sighting(flight_paths, sightings, max_flight_time, vel
     return flight_paths
 
 area = (100, 100)
-num_drones = 3
+num_drones = 4
 max_flight_time = 100
-velocity = 10
+velocity = 20
 coverage = 20
 orientation = 0
-variant = 2
 optimal_altitude = 20
 
-flight_paths, picture_points = deterministic_path_planning(area, num_drones, max_flight_time, velocity, coverage, orientation, variant)
+flight_paths, picture_points = deterministic_path_planning(area, num_drones, max_flight_time, velocity, coverage, orientation)
 
 # Assume sightings are detected (mock data)
 sightings = [(30, 40), (60, 70)]
@@ -132,6 +128,7 @@ ax.scatter(picture_points_x, picture_points_y, picture_points_z, c='black', mark
 colors = ['r', 'b', 'g', 'c', 'm', 'y', 'k']
 drone_paths = []
 drones = []
+path_lengths = []
 
 for i, path in enumerate(flight_paths):
     path = np.array(path)
@@ -142,18 +139,33 @@ for i, path in enumerate(flight_paths):
     drone, = ax.plot([], [], [], color=colors[i % len(colors)], marker='o', linestyle='')
     drones.append(drone)
 
+    # Calculate cumulative distances along the path
+    distances = [0]
+    for j in range(1, len(path)):
+        distance = np.linalg.norm(path[j] - path[j - 1])
+        distances.append(distances[-1] + distance)
+    path_lengths.append(distances)
+
 ax.set_xlabel("X Coordinate (meters)")
 ax.set_ylabel("Y Coordinate (meters)")
 ax.set_zlabel("Z Coordinate (meters)")
 ax.legend()
 ax.grid(True)
 
-def update(num, drone_paths, drones):
-    for i, (drone, path) in enumerate(zip(drones, drone_paths)):
-        index = num % len(path)
-        drone.set_data(path[index, 0], path[index, 1])
+def update(num, drone_paths, drones, path_lengths):
+    for i, (drone, path, distances) in enumerate(zip(drones, drone_paths, path_lengths)):
+        total_distance = num * velocity * 0.1  # Distance covered by the drone at current frame
+        if total_distance > distances[-1]:
+            total_distance = distances[-1]
+        idx = next(i for i, dist in enumerate(distances) if dist >= total_distance)
+        if idx == 0:
+            position = path[0]
+        else:
+            ratio = (total_distance - distances[idx - 1]) / (distances[idx] - distances[idx - 1])
+            position = path[idx - 1] + ratio * (path[idx] - path[idx - 1])
+        drone.set_data(position[0], position[1])
         drone.set_3d_properties(optimal_altitude)
 
-ani = FuncAnimation(fig, update, frames=100, fargs=(drone_paths, drones), interval=100, repeat=True)
+ani = FuncAnimation(fig, update, frames=1000, fargs=(drone_paths, drones, path_lengths), interval=100, repeat=True)
 
 plt.show()

@@ -1,9 +1,10 @@
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Suppress TensorFlow info messages
+
 import numpy as np
 import tensorflow as tf
 import cv2
 import time
-
-from scipy import ndimage
 
 class DetectorAPI:
     def __init__(self, path_to_ckpt):
@@ -40,7 +41,7 @@ class DetectorAPI:
             feed_dict={self.image_tensor: image_np_expanded})
         end_time = time.time()
 
-        print("Elapsed Time:", end_time-start_time)
+        # print("Elapsed Time:", end_time-start_time)
 
         im_height, im_width,_ = image.shape
         boxes_list = [None for i in range(boxes.shape[1])]
